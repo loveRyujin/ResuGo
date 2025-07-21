@@ -1,0 +1,92 @@
+personal_info:
+  name: "John Doe"
+  title: "Senior Software Developer"
+  email: "john.doe@example.com"
+  phone: "+1-555-0123"
+  location: "San Francisco, CA"
+  website: "https://johndoe.dev"
+  github: "https://github.com/johndoe"
+  linkedin: "https://linkedin.com/in/johndoe"
+  summary: "Experienced software developer with 8+ years of experience in full-stack development. Passionate about creating efficient, scalable solutions and mentoring junior developers."
+
+education:
+  - institution: "University of California, Berkeley"
+    degree: "Bachelor of Science"
+    major: "Computer Science"
+    start_date: "2010-08-01T00:00:00Z"
+    end_date: "2014-05-01T00:00:00Z"
+    gpa: "3.7"
+    description: "Focus on software engineering, algorithms, and data structures"
+
+experience:
+  - company: "Tech Corp"
+    position: "Senior Software Developer"
+    location: "San Francisco, CA"
+    start_date: "2020-01-01T00:00:00Z"
+    end_date: "2025-01-01T00:00:00Z"
+    current: true
+    description:
+      - "Lead a team of 5 developers in building scalable web applications"
+      - "Architected microservices handling 10M+ requests daily"
+      - "Reduced deployment time by 70% through CI/CD automation"
+      - "Mentored 3 junior developers, helping them advance to mid-level positions"
+  
+  - company: "StartupXYZ"
+    position: "Full Stack Developer"
+    location: "San Francisco, CA"
+    start_date: "2017-06-01T00:00:00Z"
+    end_date: "2019-12-31T00:00:00Z"
+    current: false
+    description:
+      - "Developed and maintained React/Node.js applications"
+      - "Implemented real-time features using WebSocket technology"
+      - "Optimized database queries resulting in 50% performance improvement"
+
+skills:
+  - category: "Programming Languages"
+    items: ["Go", "JavaScript", "TypeScript", "Python", "Java"]
+    level: "expert"
+  
+  - category: "Frameworks & Libraries"
+    items: ["React", "Node.js", "Express", "Gin", "Django"]
+    level: "advanced"
+    
+  - category: "Databases"
+    items: ["PostgreSQL", "MongoDB", "Redis"]
+    level: "advanced"
+    
+  - category: "DevOps & Tools"
+    items: ["Docker", "Kubernetes", "AWS", "Git", "Jenkins"]
+    level: "intermediate"
+
+projects:
+  - name: "E-commerce Platform"
+    description: "A full-featured e-commerce platform built with microservices architecture"
+    start_date: "2023-01"
+    end_date: "2023-08"
+    technologies: ["Go", "React", "PostgreSQL", "Docker", "Kubernetes"]
+    url: "https://ecommerce-demo.com"
+    repository: "https://github.com/johndoe/ecommerce-platform"
+    highlights:
+      - "Handles 100,000+ products and 10,000+ concurrent users"
+      - "Implemented advanced search with Elasticsearch"
+      - "99.9% uptime with comprehensive monitoring"
+  
+  - name: "Task Management API"
+    description: "RESTful API for task management with real-time updates"
+    start_date: "2022-09"
+    end_date: "2022-12"
+    technologies: ["Node.js", "WebSocket", "MongoDB", "JWT"]
+    repository: "https://github.com/johndoe/task-api"
+    highlights:
+      - "Real-time collaboration features"
+      - "JWT-based authentication system"
+      - "Comprehensive API documentation"
+
+languages:
+  - name: "English"
+    level: "native"
+  - name: "Spanish"
+    level: "fluent"
+  - name: "French"
+    level: "basic"

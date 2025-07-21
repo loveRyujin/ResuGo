@@ -72,7 +72,7 @@ func generateResume(cmd *cobra.Command, args []string) error {
 
 func init() {
 	rootCmd.AddCommand(generateCmd)
-	
+
 	generateCmd.Flags().StringVarP(&outputFormat, "format", "f", "markdown", "Output format (yaml, markdown)")
 	generateCmd.Flags().StringVarP(&outputPath, "output", "o", "", "Output file path")
 }
