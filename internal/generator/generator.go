@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/loveRyujin/ResuGo/internal/models"
 	"gopkg.in/yaml.v3"
@@ -61,140 +62,192 @@ func (g *Generator) GenerateMarkdown(outputPath string) error {
 }
 
 func (g *Generator) buildMarkdownContent() string {
-	var content string
+	var content strings.Builder
 	r := g.resume
 
-	// Header
-	content += fmt.Sprintf("# %s\n\n", r.PersonalInfo.Name)
-	if r.PersonalInfo.Title != "" {
-		content += fmt.Sprintf("**%s**\n\n", r.PersonalInfo.Title)
-	}
+	// Header - Centered name
+	content.WriteString(fmt.Sprintf("<div align=\"center\">\n\n# %s\n\n", r.PersonalInfo.Name))
 
-	// Contact Information
-	content += "## Contact Information\n\n"
-	if r.PersonalInfo.Email != "" {
-		content += fmt.Sprintf("- **Email:** %s\n", r.PersonalInfo.Email)
-	}
+	// Contact information in one line
+	var contactParts []string
 	if r.PersonalInfo.Phone != "" {
-		content += fmt.Sprintf("- **Phone:** %s\n", r.PersonalInfo.Phone)
+		contactParts = append(contactParts, r.PersonalInfo.Phone)
+	}
+	if r.PersonalInfo.Email != "" {
+		contactParts = append(contactParts, r.PersonalInfo.Email)
 	}
 	if r.PersonalInfo.Location != "" {
-		content += fmt.Sprintf("- **Location:** %s\n", r.PersonalInfo.Location)
+		contactParts = append(contactParts, r.PersonalInfo.Location)
 	}
 	if r.PersonalInfo.Website != "" {
-		content += fmt.Sprintf("- **Website:** %s\n", r.PersonalInfo.Website)
-	}
-	if r.PersonalInfo.GitHub != "" {
-		content += fmt.Sprintf("- **GitHub:** %s\n", r.PersonalInfo.GitHub)
-	}
-	if r.PersonalInfo.LinkedIn != "" {
-		content += fmt.Sprintf("- **LinkedIn:** %s\n", r.PersonalInfo.LinkedIn)
-	}
-	content += "\n"
-
-	// Summary
-	if r.PersonalInfo.Summary != "" {
-		content += "## Summary\n\n"
-		content += fmt.Sprintf("%s\n\n", r.PersonalInfo.Summary)
+		contactParts = append(contactParts, r.PersonalInfo.Website)
 	}
 
-	// Education
+	if len(contactParts) > 0 {
+		content.WriteString(strings.Join(contactParts, " | "))
+		content.WriteString("\n\n</div>\n\n")
+	} else {
+		content.WriteString("</div>\n\n")
+	}
+
+	// Summary section
+	if r.Summary != "" {
+		content.WriteString("## Summary\n\n")
+		content.WriteString(fmt.Sprintf("%s\n\n", r.Summary))
+		content.WriteString("---\n\n")
+	}
+
+	// Education section
 	if len(r.Education) > 0 {
-		content += "## Education\n\n"
+		content.WriteString("## Education\n\n")
 		for _, edu := range r.Education {
-			content += fmt.Sprintf("### %s\n", edu.Institution)
-			content += fmt.Sprintf("**%s in %s**\n", edu.Degree, edu.Major)
-			content += fmt.Sprintf("*%s - %s*\n", edu.StartDate.Format("2006"), edu.EndDate.Format("2006"))
-			if edu.GPA != "" {
-				content += fmt.Sprintf("GPA: %s\n", edu.GPA)
+			// Degree line
+			content.WriteString(fmt.Sprintf("**%s**", edu.Degree))
+			if edu.Major != "" {
+				content.WriteString(fmt.Sprintf(" in %s", edu.Major))
 			}
-			if edu.Description != "" {
-				content += fmt.Sprintf("\n%s\n", edu.Description)
+
+			// Institution and dates on right
+			content.WriteString(fmt.Sprintf("%s%s - %s\n",
+				strings.Repeat(" ", 50), edu.FormatStartDate(), edu.FormatEndDate()))
+
+			// Institution name and location
+			content.WriteString(fmt.Sprintf("%s", edu.Institution))
+			if edu.Location != "" {
+				content.WriteString(fmt.Sprintf("%s%s\n",
+					strings.Repeat(" ", 40), edu.Location))
+			} else {
+				content.WriteString("\n")
 			}
-			content += "\n"
+
+			// Additional details
+			if len(edu.RelevantCourses) > 0 {
+				content.WriteString("• **Relevant Courses:** ")
+				content.WriteString(strings.Join(edu.RelevantCourses, ", "))
+				content.WriteString("\n")
+			}
+
+			if len(edu.HonorsAwards) > 0 {
+				content.WriteString("• **Honors & Awards:** ")
+				content.WriteString(strings.Join(edu.HonorsAwards, ", "))
+				content.WriteString("\n")
+			}
+
+			content.WriteString("\n")
 		}
+		content.WriteString("---\n\n")
 	}
 
-	// Experience
+	// Experience section
 	if len(r.Experience) > 0 {
-		content += "## Work Experience\n\n"
+		content.WriteString("## Experience\n\n")
 		for _, exp := range r.Experience {
-			content += fmt.Sprintf("### %s\n", exp.Position)
-			content += fmt.Sprintf("**%s** - %s\n", exp.Company, exp.Location)
-			endDate := "Present"
-			if !exp.Current {
-				endDate = exp.EndDate.Format("Jan 2006")
-			}
-			content += fmt.Sprintf("*%s - %s*\n\n", exp.StartDate.Format("Jan 2006"), endDate)
+			// Position and dates
+			content.WriteString(fmt.Sprintf("**%s**", exp.Position))
+			content.WriteString(fmt.Sprintf("%s%s - %s\n",
+				strings.Repeat(" ", 50), exp.FormatStartDate(), exp.FormatEndDate()))
 
-			for _, desc := range exp.Description {
-				content += fmt.Sprintf("- %s\n", desc)
+			// Company and location
+			content.WriteString(fmt.Sprintf("%s", exp.Company))
+			if exp.Location != "" {
+				content.WriteString(fmt.Sprintf("%s%s\n",
+					strings.Repeat(" ", 40), exp.Location))
+			} else {
+				content.WriteString("\n")
 			}
-			content += "\n"
+
+			// Responsibilities/Description
+			for _, resp := range exp.Responsibilities {
+				content.WriteString(fmt.Sprintf("• %s\n", resp))
+			}
+
+			// Achievements
+			for _, achievement := range exp.Achievements {
+				content.WriteString(fmt.Sprintf("• **Achievement:** %s\n", achievement))
+			}
+
+			content.WriteString("\n")
 		}
+		content.WriteString("---\n\n")
 	}
 
-	// Skills
-	if len(r.Skills) > 0 {
-		content += "## Skills\n\n"
-		for _, skill := range r.Skills {
-			content += fmt.Sprintf("### %s", skill.Category)
-			if skill.Level != "" {
-				content += fmt.Sprintf(" (%s)", skill.Level)
-			}
-			content += "\n"
-			for _, item := range skill.Items {
-				content += fmt.Sprintf("- %s\n", item)
-			}
-			content += "\n"
-		}
-	}
-
-	// Projects
+	// Projects section
 	if len(r.Projects) > 0 {
-		content += "## Projects\n\n"
+		content.WriteString("## Projects\n\n")
 		for _, project := range r.Projects {
-			content += fmt.Sprintf("### %s\n", project.Name)
-			content += fmt.Sprintf("%s\n", project.Description)
-			content += fmt.Sprintf("*%s - %s*\n", project.StartDate, project.EndDate)
+			// Project name and dates
+			content.WriteString(fmt.Sprintf("**%s**", project.Name))
+			content.WriteString(fmt.Sprintf("%s%s - %s\n",
+				strings.Repeat(" ", 50), project.FormatStartDate(), project.FormatEndDate()))
 
-			if len(project.Technologies) > 0 {
-				content += "\n**Technologies:** "
-				for i, tech := range project.Technologies {
-					if i > 0 {
-						content += ", "
-					}
-					content += tech
-				}
-				content += "\n"
+			// Description
+			content.WriteString(fmt.Sprintf("%s", project.Description))
+			if project.Location != "" {
+				content.WriteString(fmt.Sprintf("%s%s\n",
+					strings.Repeat(" ", 40), project.Location))
+			} else {
+				content.WriteString("\n")
 			}
 
-			if project.URL != "" {
-				content += fmt.Sprintf("\n**URL:** %s\n", project.URL)
+			// Details
+			for _, detail := range project.Details {
+				content.WriteString(fmt.Sprintf("• %s\n", detail))
 			}
 
-			if project.Repository != "" {
-				content += fmt.Sprintf("**Repository:** %s\n", project.Repository)
-			}
-
-			if len(project.Highlights) > 0 {
-				content += "\n**Highlights:**\n"
-				for _, highlight := range project.Highlights {
-					content += fmt.Sprintf("- %s\n", highlight)
-				}
-			}
-			content += "\n"
+			content.WriteString("\n")
 		}
+		content.WriteString("---\n\n")
 	}
 
-	// Languages
+	// Skills section
+	content.WriteString("## Skills\n\n")
+
+	if len(r.Skills.Languages) > 0 {
+		content.WriteString(fmt.Sprintf("• **Languages:** %s\n",
+			strings.Join(r.Skills.Languages, ", ")))
+	}
+
+	if len(r.Skills.Frameworks) > 0 {
+		content.WriteString(fmt.Sprintf("• **Frameworks:** %s\n",
+			strings.Join(r.Skills.Frameworks, ", ")))
+	}
+
+	if len(r.Skills.Databases) > 0 {
+		content.WriteString(fmt.Sprintf("• **Databases:** %s\n",
+			strings.Join(r.Skills.Databases, ", ")))
+	}
+
+	if len(r.Skills.Tools) > 0 {
+		content.WriteString(fmt.Sprintf("• **Tools:** %s\n",
+			strings.Join(r.Skills.Tools, ", ")))
+	}
+
+	if len(r.Skills.Other) > 0 {
+		content.WriteString(fmt.Sprintf("• **Other:** %s\n",
+			strings.Join(r.Skills.Other, ", ")))
+	}
+
+	// Custom skill categories
+	for _, customSkill := range r.Skills.Custom {
+		content.WriteString(fmt.Sprintf("• **%s:** %s\n",
+			customSkill.Name, strings.Join(customSkill.Items, ", ")))
+	}
+
+	// Languages section (if any)
 	if len(r.Languages) > 0 {
-		content += "## Languages\n\n"
+		content.WriteString("\n---\n\n## Languages\n\n")
 		for _, lang := range r.Languages {
-			content += fmt.Sprintf("- **%s:** %s\n", lang.Name, lang.Level)
+			content.WriteString(fmt.Sprintf("• **%s:** %s\n", lang.Name, lang.Level))
 		}
-		content += "\n"
 	}
 
-	return content
+	// Additional sections
+	for _, section := range r.Additional {
+		content.WriteString(fmt.Sprintf("\n---\n\n## %s\n\n", section.Title))
+		for _, item := range section.Items {
+			content.WriteString(fmt.Sprintf("• %s\n", item))
+		}
+	}
+
+	return content.String()
 }
