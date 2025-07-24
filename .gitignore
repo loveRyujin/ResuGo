@@ -1,89 +1,226 @@
-# Binaries for programs and plugins
+# ==============================================================================
+# Go 相关文件
+# ==============================================================================
+
+# 编译输出
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
 
-# Test binary, built with `go test -c`
+# Go 测试文件
 *.test
 
-# Output of the go coverage tool, specifically when used with LiteIDE
+# Go 覆盖率工具输出
 *.out
+*.cover
+coverage.out
+coverage.html
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
-
-# Go workspace file
+# Go 工作空间文件
 go.work
 go.work.sum
 
-# Environment variables
-.env
-.env.local
-.env.production
-.env.test
+# 依赖目录
+vendor/
 
-# Build directory
-build/
-dist/
+# ==============================================================================
+# 项目特定文件
+# ==============================================================================
 
-# Binary output
+# 二进制输出文件
 resumgo
 resumgo.exe
+/resumgo
+/resumgo.exe
 
-# Generated files
+# 构建和分发目录
+build/
+dist/
+bin/
+
+# 生成的简历文件
 *.yaml
 *.md
 !templates/*.yaml
 !README.md
+!docs/*.md
 
-# Example output files
+# 示例输出文件
 example_*.md
 example_*.yaml
+example_*.pdf
 my_resume.*
 output.*
+resume_output.*
 
-# IDE and editor files
+# ==============================================================================
+# 环境和配置文件
+# ==============================================================================
+
+# 环境变量文件
+.env
+.env.*
+!.env.example
+
+# 配置文件（可能包含敏感信息）
+config.json
+config.yaml
+secrets.yaml
+.secrets
+.config
+
+# ==============================================================================
+# IDE 和编辑器文件
+# ==============================================================================
+
+# Visual Studio Code
 .vscode/
+*.code-workspace
+
+# JetBrains IDEs
 .idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
 *.swp
 *.swo
 *~
+.netrwhist
 
-# OS generated files
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ==============================================================================
+# 操作系统生成的文件
+# ==============================================================================
+
+# macOS
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
-ehthumbs.db
+.AppleDouble
+.LSOverride
+
+# Windows
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
 
-# Log files
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==============================================================================
+# 日志和临时文件
+# ==============================================================================
+
+# 日志文件
 *.log
+logs/
+log/
 
-# Coverage files
-*.cover
-coverage.out
-coverage.html
-
-# Temporary files
+# 临时文件
 *.tmp
 *.temp
+*.bak
+*.backup
+*.orig
 
-# Cache directories
+# PID文件
+*.pid
+
+# ==============================================================================
+# 缓存和依赖
+# ==============================================================================
+
+# Go 模块缓存
+go.sum.tmp
+
+# 通用缓存目录
 .cache/
+cache/
 
-# Node modules (if using any web tools)
+# Node.js（如果使用前端工具）
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Python cache (if using any Python tools)
+# Python（如果使用Python工具）
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Configuration files that might contain secrets
-config.json
-secrets.yaml
-.secrets
+# ==============================================================================
+# 安全和部署
+# ==============================================================================
+
+# 私钥和证书
+*.key
+*.pem
+*.crt
+*.cer
+*.p12
+*.pfx
+
+# Docker
+.dockerignore
+
+# Kubernetes
+*.kubeconfig
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# ==============================================================================
+# 其他
+# ==============================================================================
+
+# 压缩文件
+*.zip
+*.tar.gz
+*.rar
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 调试和性能分析文件
+debug
+*.prof
+cpu.prof
+mem.prof
+
+# 测试输出
+testdata/output/
+test-results/
