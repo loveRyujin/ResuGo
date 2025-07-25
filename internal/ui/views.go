@@ -68,36 +68,60 @@ func (m Model) renderConfirmView() string {
 	if len(m.resume.Education) > 0 {
 		s.WriteString("🎓 教育背景:\n")
 		for _, edu := range m.resume.Education {
-			s.WriteString(fmt.Sprintf("  %s - %s", edu.Institution, edu.Degree))
+			// 学校名称
+			s.WriteString(fmt.Sprintf("  %s\n", edu.Institution))
+
+			// 学位和专业
 			if edu.Major != "" {
-				s.WriteString(fmt.Sprintf(" (%s)", edu.Major))
+				s.WriteString(fmt.Sprintf("    %s (%s)\n", edu.Degree, edu.Major))
+			} else {
+				s.WriteString(fmt.Sprintf("    %s\n", edu.Degree))
 			}
-			if edu.Location != "" {
-				s.WriteString(fmt.Sprintf(" - %s", edu.Location))
+
+			// 地点和时间
+			timeStr := fmt.Sprintf("%d-%d", edu.StartDate.Year(), edu.EndDate.Year())
+			if edu.Current {
+				timeStr = fmt.Sprintf("%d-至今", edu.StartDate.Year())
 			}
-			s.WriteString(fmt.Sprintf(" (%d-%d)\n", edu.StartDate.Year(), edu.EndDate.Year()))
+			s.WriteString(fmt.Sprintf("    %s | %s\n", edu.Location, timeStr))
 		}
 		s.WriteString("\n")
 	}
 
 	// Experience
 	if len(m.resume.Experience) > 0 {
-		s.WriteString(fmt.Sprintf("💼 工作经验: %d 项\n", len(m.resume.Experience)))
+		s.WriteString("💼 工作经验:\n")
 		for _, exp := range m.resume.Experience {
-			s.WriteString(fmt.Sprintf("  %s - %s", exp.Company, exp.Position))
-			if exp.Location != "" {
-				s.WriteString(fmt.Sprintf(" (%s)", exp.Location))
-			}
-			s.WriteString("\n")
+			// 公司名称
+			s.WriteString(fmt.Sprintf("  %s\n", exp.Company))
+
+			// 职位
+			s.WriteString(fmt.Sprintf("    %s\n", exp.Position))
+
+			// 地点和时间
+			timeStr := fmt.Sprintf("%s-%s", exp.FormatStartDate(), exp.FormatEndDate())
+			s.WriteString(fmt.Sprintf("    %s | %s\n", exp.Location, timeStr))
 		}
 		s.WriteString("\n")
 	}
 
 	// Projects
 	if len(m.resume.Projects) > 0 {
-		s.WriteString(fmt.Sprintf("🚀 项目经验: %d 项\n", len(m.resume.Projects)))
+		s.WriteString("🚀 项目经验:\n")
 		for _, proj := range m.resume.Projects {
-			s.WriteString(fmt.Sprintf("  %s - %s\n", proj.Name, proj.Description))
+			// 项目名称
+			s.WriteString(fmt.Sprintf("  %s\n", proj.Name))
+
+			// 项目描述
+			s.WriteString(fmt.Sprintf("    %s\n", proj.Description))
+
+			// 地点和时间
+			timeStr := fmt.Sprintf("%s-%s", proj.FormatStartDate(), proj.FormatEndDate())
+			if proj.Location != "" {
+				s.WriteString(fmt.Sprintf("    %s | %s\n", proj.Location, timeStr))
+			} else {
+				s.WriteString(fmt.Sprintf("    %s\n", timeStr))
+			}
 		}
 		s.WriteString("\n")
 	}
@@ -116,7 +140,14 @@ func (m Model) renderConfirmView() string {
 
 	// Custom sections
 	if len(m.resume.Additional) > 0 {
-		s.WriteString(fmt.Sprintf("✨ 自定义章节: %d 项\n\n", len(m.resume.Additional)))
+		s.WriteString("✨ 自定义章节:\n")
+		for _, section := range m.resume.Additional {
+			s.WriteString(fmt.Sprintf("  %s\n", section.Title))
+			for _, item := range section.Items {
+				s.WriteString(fmt.Sprintf("    • %s\n", item))
+			}
+		}
+		s.WriteString("\n")
 	}
 
 	s.WriteString("Enter 保存简历，Esc 返回修改\n")
@@ -183,11 +214,7 @@ func (m Model) renderFormView() string {
 					s.WriteString(fmt.Sprintf("  %s\n", m.textArea.View()))
 				} else {
 					// Render textinput for single-line fields
-					if i < len(m.textInputs) {
-						s.WriteString(fmt.Sprintf("  %s\n", m.textInputs[i].View()))
-					} else {
-						s.WriteString(fmt.Sprintf("  [%s_]\n", field.Value))
-					}
+					s.WriteString(fmt.Sprintf("  %s\n", m.textInputs[i].View()))
 				}
 			} else {
 				value := field.Value

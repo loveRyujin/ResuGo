@@ -40,11 +40,11 @@ func (m *Model) setupStep() {
 // setupPersonalInfoStep sets up the personal information form fields
 func (m *Model) setupPersonalInfoStep() {
 	m.fields = []FormField{
-		{Label: "姓名", Required: true, Placeholder: "请输入您的姓名"},
-		{Label: "邮箱", Required: true, Placeholder: "your.email@example.com"},
-		{Label: "电话", Required: true, Placeholder: "(123) 456-7890"},
-		{Label: "地址", Required: true, Placeholder: "城市, 省份, 国家"},
-		{Label: "网站", Required: false, Placeholder: "www.yourwebsite.com (可选)"},
+		{Label: "姓名", Required: true, Placeholder: "如: 张三"},
+		{Label: "邮箱", Required: true, Placeholder: "如: zhangsan@example.com"},
+		{Label: "电话", Required: true, Placeholder: "如: 138-0013-8000"},
+		{Label: "地址", Required: true, Placeholder: "如: 北京市海淀区"},
+		{Label: "网站", Required: false, Placeholder: "如: www.github.com/username (可选)"},
 	}
 	// Load existing data
 	m.fields[0].Value = m.resume.PersonalInfo.Name
@@ -57,7 +57,7 @@ func (m *Model) setupPersonalInfoStep() {
 // setupSummaryStep sets up the summary form fields
 func (m *Model) setupSummaryStep() {
 	m.fields = []FormField{
-		{Label: "个人简介", Required: true, Placeholder: "请用1-3句话描述您的资历和经验...", Multiline: true},
+		{Label: "个人简介", Required: true, Placeholder: "如: 具有3年软件开发经验的全栈工程师，熟悉React、Node.js等技术栈...", Multiline: true},
 	}
 	m.fields[0].Value = m.resume.Summary
 }
@@ -65,36 +65,85 @@ func (m *Model) setupSummaryStep() {
 // setupEducationStep sets up the education form fields
 func (m *Model) setupEducationStep() {
 	m.fields = []FormField{
-		{Label: "学校名称", Required: true, Placeholder: "请输入学校名称"},
-		{Label: "学位", Required: true, Placeholder: "学士/硕士/博士"},
-		{Label: "专业", Required: false, Placeholder: "请输入专业 (可选)"},
-		{Label: "地点", Required: true, Placeholder: "城市, 省份"},
-		{Label: "开始年份", Required: true, Placeholder: "2020"},
-		{Label: "结束年份", Required: true, Placeholder: "2024 或 current"},
+		{Label: "学校名称", Required: true, Placeholder: "如: 清华大学"},
+		{Label: "学位", Required: true, Placeholder: "如: 计算机科学学士、软件工程硕士"},
+		{Label: "专业", Required: false, Placeholder: "如: 计算机科学与技术 (可选)"},
+		{Label: "地点", Required: true, Placeholder: "如: 北京"},
+		{Label: "开始年份", Required: true, Placeholder: "如: 2020"},
+		{Label: "结束年份", Required: true, Placeholder: "如: 2024 或 current"},
+	}
+
+	// Load existing education data if available
+	if len(m.resume.Education) > 0 {
+		edu := m.resume.Education[0] // Edit the first education entry
+		m.fields[0].Value = edu.Institution
+		m.fields[1].Value = edu.Degree
+		m.fields[2].Value = edu.Major
+		m.fields[3].Value = edu.Location
+		m.fields[4].Value = edu.FormatStartDate()
+		if edu.Current {
+			m.fields[5].Value = "current"
+		} else {
+			m.fields[5].Value = edu.FormatEndDate()
+		}
 	}
 }
 
 // setupExperienceStep sets up the work experience form fields
 func (m *Model) setupExperienceStep() {
 	m.fields = []FormField{
-		{Label: "公司名称", Required: true, Placeholder: "请输入公司名称"},
-		{Label: "职位", Required: true, Placeholder: "请输入职位"},
-		{Label: "地点", Required: true, Placeholder: "城市, 省份"},
-		{Label: "开始年月", Required: true, Placeholder: "2022-06"},
-		{Label: "结束年月", Required: true, Placeholder: "2024-08 或 current"},
-		{Label: "工作描述", Required: true, Placeholder: "请描述您的主要职责和成就 (一行一个要点)", Multiline: true},
+		{Label: "公司名称", Required: true, Placeholder: "如: 阿里巴巴集团"},
+		{Label: "职位", Required: true, Placeholder: "如: 高级软件工程师"},
+		{Label: "地点", Required: true, Placeholder: "如: 杭州"},
+		{Label: "开始年月", Required: true, Placeholder: "如: 2022-06"},
+		{Label: "结束年月", Required: true, Placeholder: "如: 2024-08 或 current"},
+		{Label: "工作描述", Required: true, Placeholder: "如: 负责电商平台后端开发\n优化系统性能，提升30%处理速度\n参与微服务架构设计", Multiline: true},
+	}
+
+	// Load existing experience data if available
+	if len(m.resume.Experience) > 0 {
+		exp := m.resume.Experience[0] // Edit the first experience entry
+		m.fields[0].Value = exp.Company
+		m.fields[1].Value = exp.Position
+		m.fields[2].Value = exp.Location
+		m.fields[3].Value = exp.FormatStartDate()
+		if exp.Current {
+			m.fields[4].Value = "current"
+		} else {
+			m.fields[4].Value = exp.FormatEndDate()
+		}
+		if len(exp.Responsibilities) > 0 {
+			m.fields[5].Value = strings.Join(exp.Responsibilities, "\n")
+		}
 	}
 }
 
 // setupProjectsStep sets up the projects form fields
 func (m *Model) setupProjectsStep() {
 	m.fields = []FormField{
-		{Label: "项目名称", Required: true, Placeholder: "请输入项目名称"},
-		{Label: "项目描述", Required: true, Placeholder: "一句话描述项目"},
-		{Label: "地点", Required: false, Placeholder: "城市, 省份 (可选)"},
-		{Label: "开始年月", Required: true, Placeholder: "2023-01"},
-		{Label: "结束年月", Required: true, Placeholder: "2023-06 或 current"},
-		{Label: "项目详情", Required: true, Placeholder: "详细描述项目内容和您的贡献 (一行一个要点)", Multiline: true},
+		{Label: "项目名称", Required: true, Placeholder: "如: 在线教育平台"},
+		{Label: "项目描述", Required: true, Placeholder: "如: 基于React和Node.js的在线学习系统"},
+		{Label: "地点", Required: false, Placeholder: "如: 北京 (可选)"},
+		{Label: "开始年月", Required: true, Placeholder: "如: 2023-01"},
+		{Label: "结束年月", Required: true, Placeholder: "如: 2023-06 或 current"},
+		{Label: "项目详情", Required: true, Placeholder: "如: 负责前端页面开发和API设计\n实现用户认证和课程管理功能\n使用Redis缓存提升系统性能", Multiline: true},
+	}
+
+	// Load existing project data if available
+	if len(m.resume.Projects) > 0 {
+		proj := m.resume.Projects[0] // Edit the first project entry
+		m.fields[0].Value = proj.Name
+		m.fields[1].Value = proj.Description
+		m.fields[2].Value = proj.Location
+		m.fields[3].Value = proj.FormatStartDate()
+		if proj.Current {
+			m.fields[4].Value = "current"
+		} else {
+			m.fields[4].Value = proj.FormatEndDate()
+		}
+		if len(proj.Details) > 0 {
+			m.fields[5].Value = strings.Join(proj.Details, "\n")
+		}
 	}
 }
 
@@ -138,8 +187,8 @@ func (m *Model) setupSkillsStep() {
 // setupCustomSectionsStep sets up the custom sections form fields
 func (m *Model) setupCustomSectionsStep() {
 	m.fields = []FormField{
-		{Label: "自定义章节标题", Required: false, Placeholder: "例如: 证书、奖项、志愿经历等 (可留空跳过)"},
-		{Label: "章节内容", Required: false, Placeholder: "Enter编辑列表", IsList: true},
+		{Label: "自定义章节标题", Required: false, Placeholder: "如: 获得证书、获奖经历、志愿活动 (可留空跳过)"},
+		{Label: "章节内容", Required: false, Placeholder: "按Enter编辑列表", IsList: true},
 	}
 }
 

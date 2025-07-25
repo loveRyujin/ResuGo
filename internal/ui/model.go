@@ -90,20 +90,23 @@ func (m *Model) createTextInputs() {
 	m.textInputs = make([]textinput.Model, len(m.fields))
 
 	for i, field := range m.fields {
-		if !field.Multiline && !field.IsList {
-			ti := textinput.New()
-			ti.Placeholder = field.Placeholder
-			ti.SetValue(field.Value)
-			ti.CharLimit = 156
-			ti.Width = 50
+		ti := textinput.New()
+		ti.Placeholder = field.Placeholder
+		ti.SetValue(field.Value)
+		ti.CharLimit = 156
+		ti.Width = 50
 
-			// Focus the first input
+		if !field.Multiline && !field.IsList {
+			// Focus the first single-line input
 			if i == 0 {
 				ti.Focus()
 			}
-
-			m.textInputs[i] = ti
+		} else {
+			// For multiline/list fields, create but don't focus
+			ti.Blur()
 		}
+
+		m.textInputs[i] = ti
 	}
 }
 
@@ -224,23 +227,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // isCurrentFieldMultiline checks if the current field is multiline
 func (m Model) isCurrentFieldMultiline() bool {
 	return len(m.fields) > 0 && m.fields[m.currentField].Multiline
-}
-
-// isInputFocused checks if any input component is currently focused
-func (m Model) isInputFocused() bool {
-	// Check if textarea is focused
-	if m.textArea.Focused() {
-		return true
-	}
-
-	// Check if any textinput is focused
-	for _, ti := range m.textInputs {
-		if ti.Focused() {
-			return true
-		}
-	}
-
-	return false
 }
 
 // blurAllInputs removes focus from all input components

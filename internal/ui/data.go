@@ -75,14 +75,14 @@ func (m *Model) saveEducation() {
 		Current:     m.fields[5].Value == "current",
 	}
 
-	// Prevent duplicates
-	for _, existing := range m.resume.Education {
-		if existing.Institution == edu.Institution && existing.Degree == edu.Degree {
-			return // Skip duplicate
-		}
+	// Update existing education or add new one
+	if len(m.resume.Education) > 0 {
+		// Update the first education entry
+		m.resume.Education[0] = edu
+	} else {
+		// Add new education entry
+		m.resume.Education = append(m.resume.Education, edu)
 	}
-
-	m.resume.Education = append(m.resume.Education, edu)
 }
 
 // saveExperience saves work experience data
@@ -116,14 +116,14 @@ func (m *Model) saveExperience() {
 		Responsibilities: responsibilities,
 	}
 
-	// Prevent duplicates
-	for _, existing := range m.resume.Experience {
-		if existing.Company == exp.Company && existing.Position == exp.Position {
-			return // Skip duplicate
-		}
+	// Update existing experience or add new one
+	if len(m.resume.Experience) > 0 {
+		// Update the first experience entry
+		m.resume.Experience[0] = exp
+	} else {
+		// Add new experience entry
+		m.resume.Experience = append(m.resume.Experience, exp)
 	}
-
-	m.resume.Experience = append(m.resume.Experience, exp)
 }
 
 // saveProjects saves project data
@@ -157,14 +157,14 @@ func (m *Model) saveProjects() {
 		Details:     details,
 	}
 
-	// Prevent duplicates
-	for _, existing := range m.resume.Projects {
-		if existing.Name == project.Name {
-			return // Skip duplicate
-		}
+	// Update existing project or add new one
+	if len(m.resume.Projects) > 0 {
+		// Update the first project entry
+		m.resume.Projects[0] = project
+	} else {
+		// Add new project entry
+		m.resume.Projects = append(m.resume.Projects, project)
 	}
-
-	m.resume.Projects = append(m.resume.Projects, project)
 }
 
 // saveSkills saves skills data
