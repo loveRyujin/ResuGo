@@ -43,7 +43,14 @@ func (m Model) renderWelcomeView() string {
 func (m Model) renderConfirmView() string {
 	var s strings.Builder
 
-	s.WriteString("📋 确认信息\n\n")
+	// Show progress bar
+	progress := m.calculateProgress()
+	stepName := m.getStepName()
+
+	s.WriteString(fmt.Sprintf("📋 简历创建进度 - %s (%.0f%%)\n", stepName, progress*100))
+	s.WriteString(m.progressBar.ViewAs(progress))
+	s.WriteString("\n\n")
+
 	s.WriteString("请确认您的简历信息:\n\n")
 
 	// Personal Information
@@ -158,6 +165,16 @@ func (m Model) renderConfirmView() string {
 // renderFormView renders the form input view
 func (m Model) renderFormView() string {
 	var s strings.Builder
+
+	// Show progress bar for non-welcome steps
+	if m.currentStep != StepWelcome {
+		progress := m.calculateProgress()
+		stepName := m.getStepName()
+
+		s.WriteString(fmt.Sprintf("📋 简历创建进度 - %s (%.0f%%)\n", stepName, progress*100))
+		s.WriteString(m.progressBar.ViewAs(progress))
+		s.WriteString("\n\n")
+	}
 
 	stepNames := map[int]string{
 		StepPersonalInfo:   "📝 个人信息",

@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -45,6 +46,7 @@ type Model struct {
 	welcomeList list.Model
 	textInputs  []textinput.Model
 	textArea    textarea.Model
+	progressBar progress.Model
 }
 
 // NewModel creates and returns the initial model state
@@ -71,6 +73,10 @@ func NewModel() Model {
 	ta.SetWidth(60)
 	ta.SetHeight(5)
 
+	// Create progress bar
+	prog := progress.New(progress.WithDefaultGradient())
+	prog.Width = 40
+
 	return Model{
 		currentStep: StepWelcome,
 		choices: []string{
@@ -82,6 +88,7 @@ func NewModel() Model {
 		welcomeList:    welcomeList,
 		textInputs:     []textinput.Model{},
 		textArea:       ta,
+		progressBar:    prog,
 	}
 }
 
@@ -127,6 +134,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Update textarea width
 		m.textArea.SetWidth(msg.Width - 10)
+
+		// Update progress bar width
+		m.progressBar.Width = msg.Width - 20 // Leave some padding
+		if m.progressBar.Width < 20 {
+			m.progressBar.Width = 20 // Minimum width
+		}
 	}
 
 	// Update welcome list if we're on welcome step
@@ -227,6 +240,44 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // isCurrentFieldMultiline checks if the current field is multiline
 func (m Model) isCurrentFieldMultiline() bool {
 	return len(m.fields) > 0 && m.fields[m.currentField].Multiline
+}
+
+// calculateProgress returns the current progress percentage (0.0 to 1.0)
+func (m Model) calculateProgress() float64 {
+	// 总共有 9 个步骤 (Welcome=0, PersonalInfo=1, Summary=2, Education=3, Experience=4, Projects=5, Skills=6, CustomSections=7, Confirm=8, Finish=9)
+	totalSteps := float64(9)
+	currentStep := float64(m.currentStep)
+
+	// 限制在有效范围内
+	if currentStep < 0 {
+		currentStep = 0
+	}
+	if currentStep > totalSteps {
+		currentStep = totalSteps
+	}
+
+	return currentStep / totalSteps
+}
+
+// getStepName returns the Chinese name for current step
+func (m Model) getStepName() string {
+	stepNames := map[int]string{
+		StepWelcome:        "欢迎",
+		StepPersonalInfo:   "个人信息",
+		StepSummary:        "个人简介",
+		StepEducation:      "教育背景",
+		StepExperience:     "工作经验",
+		StepProjects:       "项目经验",
+		StepSkills:         "技能",
+		StepCustomSections: "自定义章节",
+		StepConfirm:        "确认信息",
+		StepFinish:         "完成",
+	}
+
+	if name, exists := stepNames[m.currentStep]; exists {
+		return name
+	}
+	return "未知步骤"
 }
 
 // blurAllInputs removes focus from all input components
