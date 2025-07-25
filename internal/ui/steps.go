@@ -26,6 +26,15 @@ func (m *Model) setupStep() {
 	case StepCustomSections:
 		m.setupCustomSectionsStep()
 	}
+
+	// Create input components for this step
+	m.createTextInputs()
+
+	// Auto-focus the first non-list field for direct editing
+	if len(m.fields) > 0 && !m.fields[0].IsList {
+		m.currentField = 0
+		m.focusCurrentField()
+	}
 }
 
 // setupPersonalInfoStep sets up the personal information form fields

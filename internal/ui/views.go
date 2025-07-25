@@ -45,16 +45,81 @@ func (m Model) renderConfirmView() string {
 
 	s.WriteString("📋 确认信息\n\n")
 	s.WriteString("请确认您的简历信息:\n\n")
-	s.WriteString(fmt.Sprintf("姓名: %s\n", m.resume.PersonalInfo.Name))
-	s.WriteString(fmt.Sprintf("邮箱: %s\n", m.resume.PersonalInfo.Email))
-	if m.resume.Summary != "" {
-		s.WriteString(fmt.Sprintf("个人简介: %s\n", m.resume.Summary))
+
+	// Personal Information
+	s.WriteString("👤 个人信息:\n")
+	s.WriteString(fmt.Sprintf("  姓名: %s\n", m.resume.PersonalInfo.Name))
+	s.WriteString(fmt.Sprintf("  邮箱: %s\n", m.resume.PersonalInfo.Email))
+	if m.resume.PersonalInfo.Phone != "" {
+		s.WriteString(fmt.Sprintf("  电话: %s\n", m.resume.PersonalInfo.Phone))
 	}
-	s.WriteString(fmt.Sprintf("教育背景: %d 项\n", len(m.resume.Education)))
-	s.WriteString(fmt.Sprintf("工作经验: %d 项\n", len(m.resume.Experience)))
-	s.WriteString(fmt.Sprintf("项目经验: %d 项\n", len(m.resume.Projects)))
-	s.WriteString(fmt.Sprintf("自定义章节: %d 项\n", len(m.resume.Additional)))
-	s.WriteString("\nEnter 保存简历，Esc 返回修改\n")
+	if m.resume.PersonalInfo.Location != "" {
+		s.WriteString(fmt.Sprintf("  地址: %s\n", m.resume.PersonalInfo.Location))
+	}
+	s.WriteString("\n")
+
+	// Summary
+	if m.resume.Summary != "" {
+		s.WriteString("📄 个人简介:\n")
+		s.WriteString(fmt.Sprintf("  %s\n\n", m.resume.Summary))
+	}
+
+	// Education
+	if len(m.resume.Education) > 0 {
+		s.WriteString("🎓 教育背景:\n")
+		for _, edu := range m.resume.Education {
+			s.WriteString(fmt.Sprintf("  %s - %s", edu.Institution, edu.Degree))
+			if edu.Major != "" {
+				s.WriteString(fmt.Sprintf(" (%s)", edu.Major))
+			}
+			if edu.Location != "" {
+				s.WriteString(fmt.Sprintf(" - %s", edu.Location))
+			}
+			s.WriteString(fmt.Sprintf(" (%d-%d)\n", edu.StartDate.Year(), edu.EndDate.Year()))
+		}
+		s.WriteString("\n")
+	}
+
+	// Experience
+	if len(m.resume.Experience) > 0 {
+		s.WriteString(fmt.Sprintf("💼 工作经验: %d 项\n", len(m.resume.Experience)))
+		for _, exp := range m.resume.Experience {
+			s.WriteString(fmt.Sprintf("  %s - %s", exp.Company, exp.Position))
+			if exp.Location != "" {
+				s.WriteString(fmt.Sprintf(" (%s)", exp.Location))
+			}
+			s.WriteString("\n")
+		}
+		s.WriteString("\n")
+	}
+
+	// Projects
+	if len(m.resume.Projects) > 0 {
+		s.WriteString(fmt.Sprintf("🚀 项目经验: %d 项\n", len(m.resume.Projects)))
+		for _, proj := range m.resume.Projects {
+			s.WriteString(fmt.Sprintf("  %s - %s\n", proj.Name, proj.Description))
+		}
+		s.WriteString("\n")
+	}
+
+	// Skills
+	if len(m.resume.Skills.Languages) > 0 || len(m.resume.Skills.Frameworks) > 0 {
+		s.WriteString("🛠️ 技能:\n")
+		if len(m.resume.Skills.Languages) > 0 {
+			s.WriteString(fmt.Sprintf("  编程语言: %s\n", strings.Join(m.resume.Skills.Languages, ", ")))
+		}
+		if len(m.resume.Skills.Frameworks) > 0 {
+			s.WriteString(fmt.Sprintf("  框架/库: %s\n", strings.Join(m.resume.Skills.Frameworks, ", ")))
+		}
+		s.WriteString("\n")
+	}
+
+	// Custom sections
+	if len(m.resume.Additional) > 0 {
+		s.WriteString(fmt.Sprintf("✨ 自定义章节: %d 项\n\n", len(m.resume.Additional)))
+	}
+
+	s.WriteString("Enter 保存简历，Esc 返回修改\n")
 
 	return s.String()
 }
@@ -113,8 +178,16 @@ func (m Model) renderFormView() string {
 			if i == m.currentField {
 				if field.IsList {
 					s.WriteString(fmt.Sprintf("  [%s] (按Enter编辑)\n", field.Value))
+				} else if field.Multiline {
+					// Render textarea for multiline fields
+					s.WriteString(fmt.Sprintf("  %s\n", m.textArea.View()))
 				} else {
-					s.WriteString(fmt.Sprintf("  [%s_]\n", field.Value))
+					// Render textinput for single-line fields
+					if i < len(m.textInputs) {
+						s.WriteString(fmt.Sprintf("  %s\n", m.textInputs[i].View()))
+					} else {
+						s.WriteString(fmt.Sprintf("  [%s_]\n", field.Value))
+					}
 				}
 			} else {
 				value := field.Value
@@ -130,7 +203,7 @@ func (m Model) renderFormView() string {
 			s.WriteString(fmt.Sprintf("❌ %s\n\n", m.error))
 		}
 
-		s.WriteString("Enter 下一步，↑/↓ 切换字段，Tab 快速切换，Esc 返回上一步\n")
+		s.WriteString("Enter 下一步，↑/↓ 或 Tab(向下)/Shift+Tab(向上) 切换字段，j/k 仅用于输入，Esc 返回上一步\n")
 	}
 
 	return s.String()

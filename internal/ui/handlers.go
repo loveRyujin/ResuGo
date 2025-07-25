@@ -50,6 +50,9 @@ func (m *Model) handleEnter() (tea.Model, tea.Cmd) {
 			return *m, nil
 		}
 
+		// Sync all input component values to fields before validation
+		m.syncInputsToFields()
+
 		// Validate and save current step data
 		if m.validateCurrentStep() {
 			m.saveCurrentStep()
@@ -118,6 +121,8 @@ func (m *Model) handleFormNavigation(direction string) {
 		return
 	}
 
+	oldField := m.currentField
+
 	switch direction {
 	case "up":
 		if m.currentStep == StepWelcome {
@@ -147,6 +152,11 @@ func (m *Model) handleFormNavigation(direction string) {
 		if !m.editingList && len(m.fields) > 0 && m.currentField > 0 {
 			m.currentField--
 		}
+	}
+
+	// Focus the new current field if it changed
+	if oldField != m.currentField && m.currentStep != StepWelcome {
+		m.focusCurrentField()
 	}
 }
 

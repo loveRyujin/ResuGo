@@ -2,6 +2,8 @@ package ui
 
 import (
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/textarea"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/loveRyujin/ResuGo/internal/models"
 )
@@ -41,6 +43,8 @@ type Model struct {
 
 	// Bubbles components
 	welcomeList list.Model
+	textInputs  []textinput.Model
+	textArea    textarea.Model
 }
 
 // NewModel creates and returns the initial model state
@@ -59,6 +63,14 @@ func NewModel() Model {
 	welcomeList.SetFilteringEnabled(false)
 	welcomeList.Styles.Title = welcomeList.Styles.Title.Bold(true)
 
+	// Create textarea for multiline inputs
+	ta := textarea.New()
+	ta.Placeholder = "请输入内容..."
+	ta.Focus()
+	ta.CharLimit = 500
+	ta.SetWidth(60)
+	ta.SetHeight(5)
+
 	return Model{
 		currentStep: StepWelcome,
 		choices: []string{
@@ -68,6 +80,30 @@ func NewModel() Model {
 		},
 		customSections: []CustomSection{},
 		welcomeList:    welcomeList,
+		textInputs:     []textinput.Model{},
+		textArea:       ta,
+	}
+}
+
+// createTextInputs creates text input components for the current step fields
+func (m *Model) createTextInputs() {
+	m.textInputs = make([]textinput.Model, len(m.fields))
+
+	for i, field := range m.fields {
+		if !field.Multiline && !field.IsList {
+			ti := textinput.New()
+			ti.Placeholder = field.Placeholder
+			ti.SetValue(field.Value)
+			ti.CharLimit = 156
+			ti.Width = 50
+
+			// Focus the first input
+			if i == 0 {
+				ti.Focus()
+			}
+
+			m.textInputs[i] = ti
+		}
 	}
 }
 
@@ -79,16 +115,42 @@ func (m Model) Init() tea.Cmd {
 // Update processes messages and updates the model (required by BubbleTea)
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+	var cmds []tea.Cmd
 
 	// Handle window size changes
 	if msg, ok := msg.(tea.WindowSizeMsg); ok {
 		m.welcomeList.SetWidth(msg.Width)
 		m.welcomeList.SetHeight(msg.Height - 4) // Leave space for padding
+
+		// Update textarea width
+		m.textArea.SetWidth(msg.Width - 10)
 	}
 
 	// Update welcome list if we're on welcome step
 	if m.currentStep == StepWelcome {
 		m.welcomeList, cmd = m.welcomeList.Update(msg)
+		cmds = append(cmds, cmd)
+	} else if m.currentStep != StepWelcome && m.currentStep != StepConfirm && len(m.fields) > 0 {
+		// Update text inputs and textarea for form steps
+		if !m.editingList {
+			// Update all text inputs
+			for i := range m.textInputs {
+				if i < len(m.fields) && !m.fields[i].Multiline && !m.fields[i].IsList {
+					m.textInputs[i], cmd = m.textInputs[i].Update(msg)
+					cmds = append(cmds, cmd)
+					// Sync textinput value back to field
+					m.fields[i].Value = m.textInputs[i].Value()
+				}
+			}
+
+			// Update textarea for multiline fields
+			if m.currentField < len(m.fields) && m.fields[m.currentField].Multiline {
+				m.textArea, cmd = m.textArea.Update(msg)
+				cmds = append(cmds, cmd)
+				// Sync textarea value back to field
+				m.fields[m.currentField].Value = m.textArea.Value()
+			}
+		}
 	}
 
 	switch msg := msg.(type) {
@@ -112,26 +174,36 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			return m.handleEnter()
 
-		case "up", "k":
-			if m.currentStep != StepWelcome {
+		case "up":
+			// Arrow keys always handle navigation to switch fields
+			if m.currentStep != StepWelcome && !m.editingList {
 				m.handleListNavigation("up")
 				m.handleFormNavigation("up")
 			}
 
-		case "down", "j":
-			if m.currentStep != StepWelcome {
+		case "down":
+			// Arrow keys always handle navigation to switch fields
+			if m.currentStep != StepWelcome && !m.editingList {
 				m.handleListNavigation("down")
 				m.handleFormNavigation("down")
 			}
 
 		case "tab":
-			m.handleFormNavigation("tab")
+			// Always handle tab navigation to switch fields
+			if m.currentStep != StepWelcome && !m.editingList {
+				m.handleFormNavigation("tab")
+			}
 
 		case "shift+tab":
-			m.handleFormNavigation("shift+tab")
+			// Always handle shift+tab navigation to switch fields
+			if m.currentStep != StepWelcome && !m.editingList {
+				m.handleFormNavigation("shift+tab")
+			}
 
 		case "backspace":
-			m.handleBackspace()
+			if m.editingList {
+				m.handleBackspace()
+			}
 
 		case "delete":
 			m.handleListManagement("delete")
@@ -140,9 +212,83 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.handleListManagement("add")
 
 		default:
-			m.handleTextInput(msg)
+			if m.editingList {
+				m.handleTextInput(msg)
+			}
 		}
 	}
 
-	return m, cmd
+	return m, tea.Batch(cmds...)
+}
+
+// isCurrentFieldMultiline checks if the current field is multiline
+func (m Model) isCurrentFieldMultiline() bool {
+	return len(m.fields) > 0 && m.fields[m.currentField].Multiline
+}
+
+// isInputFocused checks if any input component is currently focused
+func (m Model) isInputFocused() bool {
+	// Check if textarea is focused
+	if m.textArea.Focused() {
+		return true
+	}
+
+	// Check if any textinput is focused
+	for _, ti := range m.textInputs {
+		if ti.Focused() {
+			return true
+		}
+	}
+
+	return false
+}
+
+// blurAllInputs removes focus from all input components
+func (m *Model) blurAllInputs() {
+	// Blur all textinputs
+	for i := range m.textInputs {
+		m.textInputs[i].Blur()
+	}
+	// Blur textarea
+	m.textArea.Blur()
+}
+
+// focusCurrentField sets focus to the current field's input component
+func (m *Model) focusCurrentField() {
+	if len(m.fields) == 0 {
+		return
+	}
+
+	// Blur all inputs first
+	m.blurAllInputs()
+
+	currentField := m.fields[m.currentField]
+
+	if currentField.Multiline {
+		// Focus textarea for multiline fields
+		m.textArea.SetValue(currentField.Value)
+		m.textArea.Placeholder = currentField.Placeholder
+		m.textArea.Focus()
+	} else if !currentField.IsList && m.currentField < len(m.textInputs) {
+		// Focus textinput for single-line fields
+		m.textInputs[m.currentField].SetValue(currentField.Value)
+		m.textInputs[m.currentField].Focus()
+	}
+}
+
+// syncInputsToFields syncs all input component values back to fields
+func (m *Model) syncInputsToFields() {
+	if len(m.fields) == 0 {
+		return
+	}
+
+	for i := range m.fields {
+		if m.fields[i].Multiline {
+			// Sync textarea value
+			m.fields[i].Value = m.textArea.Value()
+		} else if !m.fields[i].IsList && i < len(m.textInputs) {
+			// Sync textinput value
+			m.fields[i].Value = m.textInputs[i].Value()
+		}
+	}
 }
