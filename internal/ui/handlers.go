@@ -12,16 +12,20 @@ import (
 func (m *Model) handleEnter() (tea.Model, tea.Cmd) {
 	switch m.currentStep {
 	case StepWelcome:
-		switch m.cursor {
-		case 0: // 开始创建简历
-			m.currentStep = StepPersonalInfo
-			m.setupStep()
-		case 1: // 查看示例
-			// TODO: Implement example view
-			return *m, nil
-		case 2: // 退出
-			m.quitting = true
-			return *m, tea.Quit
+		if selectedItem := m.welcomeList.SelectedItem(); selectedItem != nil {
+			if item, ok := selectedItem.(listItem); ok {
+				switch item.title {
+				case "开始创建简历":
+					m.currentStep = StepPersonalInfo
+					m.setupStep()
+				case "查看示例":
+					// TODO: Implement example view
+					return *m, nil
+				case "退出":
+					m.quitting = true
+					return *m, tea.Quit
+				}
+			}
 		}
 
 	case StepConfirm:

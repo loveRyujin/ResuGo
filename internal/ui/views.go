@@ -33,21 +33,10 @@ func (m Model) View() string {
 
 // renderWelcomeView renders the welcome screen
 func (m Model) renderWelcomeView() string {
-	var s strings.Builder
-
-	s.WriteString("✨ 欢迎使用 ResuGo 简历生成工具 ✨\n\n")
-	s.WriteString("请选择操作:\n\n")
-
-	for i, choice := range m.choices {
-		cursor := "  "
-		if m.cursor == i {
-			cursor = "▶ "
-		}
-		s.WriteString(fmt.Sprintf("%s %s\n", cursor, choice))
-	}
-	s.WriteString("\n使用 ↑/↓ 选择，Enter 确认，Ctrl+C 退出\n")
-
-	return s.String()
+	return fmt.Sprintf("\n%s\n\n%s",
+		m.welcomeList.View(),
+		"按 Enter 选择，Ctrl+C 退出",
+	)
 }
 
 // renderConfirmView renders the confirmation screen
