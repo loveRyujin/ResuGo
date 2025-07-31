@@ -45,6 +45,27 @@ func (m *Model) handleEnter() (tea.Model, tea.Cmd) {
 			return *m, nil
 		}
 
+		// Check if we're in management mode
+		if m.managingExperiences {
+			// Enter edit mode for selected experience (or add new)
+			if len(m.resume.Experience) > 0 && m.selectedExperience < len(m.resume.Experience) {
+				m.enterExperienceEditMode(m.selectedExperience) // Edit selected
+			} else {
+				m.enterExperienceEditMode(-1) // Add new if no experiences or invalid selection
+			}
+			return *m, nil
+		}
+
+		if m.managingProjects {
+			// Enter edit mode for selected project (or add new)
+			if len(m.resume.Projects) > 0 && m.selectedProject < len(m.resume.Projects) {
+				m.enterProjectEditMode(m.selectedProject) // Edit selected
+			} else {
+				m.enterProjectEditMode(-1) // Add new if no projects or invalid selection
+			}
+			return *m, nil
+		}
+
 		// Check if current field is a list field
 		if m.enterListEditingMode() {
 			return *m, nil

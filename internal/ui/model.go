@@ -42,6 +42,14 @@ type Model struct {
 	// Custom sections
 	customSections []CustomSection
 
+	// Experience/Project management
+	managingExperiences bool
+	managingProjects    bool
+	editingExperience   int // -1 for new, >= 0 for editing existing
+	editingProject      int // -1 for new, >= 0 for editing existing
+	selectedExperience  int // Currently selected experience in management list
+	selectedProject     int // Currently selected project in management list
+
 	// Bubbles components
 	welcomeList list.Model
 	textInputs  []textinput.Model
@@ -181,6 +189,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.editingList = false
 				return m, nil
 			}
+			// If we're in edit mode for experience/project, return to management
+			if m.editingExperience >= 0 || m.editingProject >= 0 {
+				if m.editingExperience >= 0 {
+					m.cancelExperienceEdit() // Return to experience management
+				} else {
+					m.cancelProjectEdit() // Return to project management
+				}
+				return m, nil
+			}
 			if m.currentStep > StepWelcome {
 				m.currentStep--
 				m.setupStep()
@@ -191,6 +208,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleEnter()
 
 		case "up":
+			// Handle navigation in management modes
+			if m.managingExperiences {
+				if len(m.resume.Experience) > 0 {
+					m.selectedExperience = (m.selectedExperience - 1 + len(m.resume.Experience)) % len(m.resume.Experience)
+				}
+				return m, nil
+			}
+			if m.managingProjects {
+				if len(m.resume.Projects) > 0 {
+					m.selectedProject = (m.selectedProject - 1 + len(m.resume.Projects)) % len(m.resume.Projects)
+				}
+				return m, nil
+			}
 			// Arrow keys always handle navigation to switch fields
 			if m.currentStep != StepWelcome && !m.editingList {
 				m.handleListNavigation("up")
@@ -198,6 +228,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "down":
+			// Handle navigation in management modes
+			if m.managingExperiences {
+				if len(m.resume.Experience) > 0 {
+					m.selectedExperience = (m.selectedExperience + 1) % len(m.resume.Experience)
+				}
+				return m, nil
+			}
+			if m.managingProjects {
+				if len(m.resume.Projects) > 0 {
+					m.selectedProject = (m.selectedProject + 1) % len(m.resume.Projects)
+				}
+				return m, nil
+			}
 			// Arrow keys always handle navigation to switch fields
 			if m.currentStep != StepWelcome && !m.editingList {
 				m.handleListNavigation("down")
@@ -205,6 +248,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "tab":
+			// Handle tab in management modes
+			if m.managingExperiences || m.managingProjects {
+				// Continue to next step from management
+				m.nextStep()
+				return m, nil
+			}
 			// Always handle tab navigation to switch fields
 			if m.currentStep != StepWelcome && !m.editingList {
 				m.handleFormNavigation("tab")
@@ -226,6 +275,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "ctrl+n":
 			m.handleListManagement("add")
+
+		case "n", "N":
+			// Handle adding new experience/project in management mode
+			if m.managingExperiences {
+				m.enterExperienceEditMode(-1) // Add new experience
+				return m, nil
+			}
+			if m.managingProjects {
+				m.enterProjectEditMode(-1) // Add new project
+				return m, nil
+			}
 
 		default:
 			if m.editingList {

@@ -10,6 +10,14 @@ func (m *Model) setupStep() {
 	m.error = ""
 	m.editingList = false
 
+	// Reset management states
+	m.managingExperiences = false
+	m.managingProjects = false
+	m.editingExperience = -1
+	m.editingProject = -1
+	m.selectedExperience = 0
+	m.selectedProject = 0
+
 	switch m.currentStep {
 	case StepPersonalInfo:
 		m.setupPersonalInfoStep()
@@ -27,13 +35,15 @@ func (m *Model) setupStep() {
 		m.setupCustomSectionsStep()
 	}
 
-	// Create input components for this step
-	m.createTextInputs()
+	// Create input components for this step (if fields are set)
+	if len(m.fields) > 0 {
+		m.createTextInputs()
 
-	// Auto-focus the first non-list field for direct editing
-	if len(m.fields) > 0 && !m.fields[0].IsList {
-		m.currentField = 0
-		m.focusCurrentField()
+		// Auto-focus the first non-list field for direct editing
+		if !m.fields[0].IsList {
+			m.currentField = 0
+			m.focusCurrentField()
+		}
 	}
 }
 
@@ -89,8 +99,19 @@ func (m *Model) setupEducationStep() {
 	}
 }
 
-// setupExperienceStep sets up the work experience form fields
+// setupExperienceStep sets up the work experience management or form fields
 func (m *Model) setupExperienceStep() {
+	m.managingExperiences = true
+	m.editingExperience = -1
+	m.selectedExperience = 0
+	m.fields = nil // Will be set when entering edit mode
+}
+
+// enterExperienceEditMode enters edit mode for a specific experience (index -1 for new)
+func (m *Model) enterExperienceEditMode(index int) {
+	m.managingExperiences = false
+	m.editingExperience = index
+
 	m.fields = []FormField{
 		{Label: "公司名称", Required: true, Placeholder: "如: 阿里巴巴集团"},
 		{Label: "职位", Required: true, Placeholder: "如: 高级软件工程师"},
@@ -100,9 +121,9 @@ func (m *Model) setupExperienceStep() {
 		{Label: "工作描述", Required: true, Placeholder: "如: 负责电商平台后端开发\n优化系统性能，提升30%处理速度\n参与微服务架构设计", Multiline: true},
 	}
 
-	// Load existing experience data if available
-	if len(m.resume.Experience) > 0 {
-		exp := m.resume.Experience[0] // Edit the first experience entry
+	// Load existing experience data if editing
+	if index >= 0 && index < len(m.resume.Experience) {
+		exp := m.resume.Experience[index]
 		m.fields[0].Value = exp.Company
 		m.fields[1].Value = exp.Position
 		m.fields[2].Value = exp.Location
@@ -116,10 +137,26 @@ func (m *Model) setupExperienceStep() {
 			m.fields[5].Value = strings.Join(exp.Responsibilities, "\n")
 		}
 	}
+
+	// Create input components and focus first field
+	m.createTextInputs()
+	m.currentField = 0
+	m.focusCurrentField()
 }
 
-// setupProjectsStep sets up the projects form fields
+// setupProjectsStep sets up the projects management or form fields
 func (m *Model) setupProjectsStep() {
+	m.managingProjects = true
+	m.editingProject = -1
+	m.selectedProject = 0
+	m.fields = nil // Will be set when entering edit mode
+}
+
+// enterProjectEditMode enters edit mode for a specific project (index -1 for new)
+func (m *Model) enterProjectEditMode(index int) {
+	m.managingProjects = false
+	m.editingProject = index
+
 	m.fields = []FormField{
 		{Label: "项目名称", Required: true, Placeholder: "如: 在线教育平台"},
 		{Label: "项目描述", Required: true, Placeholder: "如: 基于React和Node.js的在线学习系统"},
@@ -129,9 +166,9 @@ func (m *Model) setupProjectsStep() {
 		{Label: "项目详情", Required: true, Placeholder: "如: 负责前端页面开发和API设计\n实现用户认证和课程管理功能\n使用Redis缓存提升系统性能", Multiline: true},
 	}
 
-	// Load existing project data if available
-	if len(m.resume.Projects) > 0 {
-		proj := m.resume.Projects[0] // Edit the first project entry
+	// Load existing project data if editing
+	if index >= 0 && index < len(m.resume.Projects) {
+		proj := m.resume.Projects[index]
 		m.fields[0].Value = proj.Name
 		m.fields[1].Value = proj.Description
 		m.fields[2].Value = proj.Location
@@ -145,6 +182,11 @@ func (m *Model) setupProjectsStep() {
 			m.fields[5].Value = strings.Join(proj.Details, "\n")
 		}
 	}
+
+	// Create input components and focus first field
+	m.createTextInputs()
+	m.currentField = 0
+	m.focusCurrentField()
 }
 
 // setupSkillsStep sets up the skills form fields with default values

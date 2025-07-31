@@ -85,7 +85,7 @@ func (m *Model) saveEducation() {
 	}
 }
 
-// saveExperience saves work experience data
+// saveExperience saves work experience data and returns to management
 func (m *Model) saveExperience() {
 	startDate, _ := time.Parse("2006-01", m.fields[3].Value)
 	var endDate time.Time
@@ -116,17 +116,72 @@ func (m *Model) saveExperience() {
 		Responsibilities: responsibilities,
 	}
 
-	// Update existing experience or add new one
-	if len(m.resume.Experience) > 0 {
-		// Update the first experience entry
-		m.resume.Experience[0] = exp
+	// Update existing experience or add new one based on editingExperience index
+	if m.editingExperience >= 0 && m.editingExperience < len(m.resume.Experience) {
+		// Update existing experience
+		m.resume.Experience[m.editingExperience] = exp
 	} else {
 		// Add new experience entry
 		m.resume.Experience = append(m.resume.Experience, exp)
 	}
+
+	// Return to experience management using dedicated method
+	wasEditing := m.editingExperience >= 0
+	editIndex := m.editingExperience
+	m.returnToExperienceManagement(wasEditing, editIndex)
 }
 
-// saveProjects saves project data
+// returnToExperienceManagement returns to experience management mode with proper state
+func (m *Model) returnToExperienceManagement(wasEditing bool, editIndex int) {
+	// Set management mode states
+	m.managingExperiences = true
+	m.editingExperience = -1
+	m.fields = nil
+
+	// Set proper selection
+	if wasEditing {
+		m.selectedExperience = editIndex
+	} else {
+		// Select the newly added item (last in list)
+		m.selectedExperience = len(m.resume.Experience) - 1
+	}
+
+	// Ensure selection is valid
+	if m.selectedExperience >= len(m.resume.Experience) {
+		m.selectedExperience = len(m.resume.Experience) - 1
+	}
+	if m.selectedExperience < 0 {
+		m.selectedExperience = 0
+	}
+
+	// Clear any form-related states
+	m.currentField = 0
+	m.error = ""
+	m.editingList = false
+}
+
+// cancelExperienceEdit returns to experience management mode when canceling edit
+func (m *Model) cancelExperienceEdit() {
+	// Set management mode states
+	m.managingExperiences = true
+	m.editingExperience = -1
+	m.fields = nil
+
+	// Keep current selection or reset to 0 if invalid
+	if m.selectedExperience >= len(m.resume.Experience) {
+		m.selectedExperience = 0
+	}
+	if m.selectedExperience < 0 && len(m.resume.Experience) > 0 {
+		m.selectedExperience = 0
+	}
+
+	// Clear any form-related states
+	m.currentField = 0
+	m.error = ""
+	m.editingList = false
+}
+
+// saveProjects saves project data and returns to management
 func (m *Model) saveProjects() {
 	startDate, _ := time.Parse("2006-01", m.fields[3].Value)
 	var endDate time.Time
@@ -157,14 +212,69 @@ func (m *Model) saveProjects() {
 		Details:     details,
 	}
 
-	// Update existing project or add new one
-	if len(m.resume.Projects) > 0 {
-		// Update the first project entry
-		m.resume.Projects[0] = project
+	// Update existing project or add new one based on editingProject index
+	if m.editingProject >= 0 && m.editingProject < len(m.resume.Projects) {
+		// Update existing project
+		m.resume.Projects[m.editingProject] = project
 	} else {
 		// Add new project entry
 		m.resume.Projects = append(m.resume.Projects, project)
 	}
+
+	// Return to project management using dedicated method
+	wasEditing := m.editingProject >= 0
+	editIndex := m.editingProject
+	m.returnToProjectManagement(wasEditing, editIndex)
+}
+
+// returnToProjectManagement returns to project management mode with proper state
+func (m *Model) returnToProjectManagement(wasEditing bool, editIndex int) {
+	// Set management mode states
+	m.managingProjects = true
+	m.editingProject = -1
+	m.fields = nil
+
+	// Set proper selection
+	if wasEditing {
+		m.selectedProject = editIndex
+	} else {
+		// Select the newly added item (last in list)
+		m.selectedProject = len(m.resume.Projects) - 1
+	}
+
+	// Ensure selection is valid
+	if m.selectedProject >= len(m.resume.Projects) {
+		m.selectedProject = len(m.resume.Projects) - 1
+	}
+	if m.selectedProject < 0 {
+		m.selectedProject = 0
+	}
+
+	// Clear any form-related states
+	m.currentField = 0
+	m.error = ""
+	m.editingList = false
+}
+
+// cancelProjectEdit returns to project management mode when canceling edit
+func (m *Model) cancelProjectEdit() {
+	// Set management mode states
+	m.managingProjects = true
+	m.editingProject = -1
+	m.fields = nil
+
+	// Keep current selection or reset to 0 if invalid
+	if m.selectedProject >= len(m.resume.Projects) {
+		m.selectedProject = 0
+	}
+	if m.selectedProject < 0 && len(m.resume.Projects) > 0 {
+		m.selectedProject = 0
+	}
+
+	// Clear any form-related states
+	m.currentField = 0
+	m.error = ""
+	m.editingList = false
 }
 
 // saveSkills saves skills data

@@ -176,6 +176,14 @@ func (m Model) renderFormView() string {
 		s.WriteString("\n\n")
 	}
 
+	// Check if we're in management mode
+	if m.managingExperiences {
+		return m.renderExperienceManagement()
+	}
+	if m.managingProjects {
+		return m.renderProjectManagement()
+	}
+
 	stepNames := map[int]string{
 		StepPersonalInfo:   "📝 个人信息",
 		StepSummary:        "📄 个人简介",
@@ -249,6 +257,84 @@ func (m Model) renderFormView() string {
 
 		s.WriteString("Enter 下一步，↑/↓ 或 Tab(向下)/Shift+Tab(向上) 切换字段，j/k 仅用于输入，Esc 返回上一步\n")
 	}
+
+	return s.String()
+}
+
+// renderExperienceManagement renders the work experience management interface
+func (m Model) renderExperienceManagement() string {
+	var s strings.Builder
+
+	// Show progress bar
+	progress := m.calculateProgress()
+	stepName := m.getStepName()
+
+	s.WriteString(fmt.Sprintf("📋 简历创建进度 - %s (%.0f%%)\n", stepName, progress*100))
+	s.WriteString(m.progressBar.ViewAs(progress))
+	s.WriteString("\n\n")
+
+	s.WriteString("💼 工作经验管理\n\n")
+
+	if len(m.resume.Experience) == 0 {
+		s.WriteString("暂无工作经验\n\n")
+	} else {
+		s.WriteString("已有工作经验:\n")
+		for i, exp := range m.resume.Experience {
+			cursor := "  "
+			if i == m.selectedExperience {
+				cursor = "▶ "
+			}
+			s.WriteString(fmt.Sprintf("%s%d. %s - %s (%s)\n", cursor, i+1, exp.Company, exp.Position, exp.FormatStartDate()))
+		}
+		s.WriteString("\n")
+	}
+
+	s.WriteString("选择操作:\n")
+	s.WriteString("  ↑/↓ 浏览经历列表\n")
+	s.WriteString("  Enter 编辑选中的经历\n")
+	s.WriteString("  N 添加新的工作经历\n")
+	s.WriteString("  D 删除选中的经历\n")
+	s.WriteString("  Tab 继续下一步\n")
+	s.WriteString("  Esc 返回上一步\n")
+
+	return s.String()
+}
+
+// renderProjectManagement renders the project management interface
+func (m Model) renderProjectManagement() string {
+	var s strings.Builder
+
+	// Show progress bar
+	progress := m.calculateProgress()
+	stepName := m.getStepName()
+
+	s.WriteString(fmt.Sprintf("📋 简历创建进度 - %s (%.0f%%)\n", stepName, progress*100))
+	s.WriteString(m.progressBar.ViewAs(progress))
+	s.WriteString("\n\n")
+
+	s.WriteString("🚀 项目经验管理\n\n")
+
+	if len(m.resume.Projects) == 0 {
+		s.WriteString("暂无项目经验\n\n")
+	} else {
+		s.WriteString("已有项目经验:\n")
+		for i, proj := range m.resume.Projects {
+			cursor := "  "
+			if i == m.selectedProject {
+				cursor = "▶ "
+			}
+			s.WriteString(fmt.Sprintf("%s%d. %s (%s)\n", cursor, i+1, proj.Name, proj.FormatStartDate()))
+		}
+		s.WriteString("\n")
+	}
+
+	s.WriteString("选择操作:\n")
+	s.WriteString("  ↑/↓ 浏览项目列表\n")
+	s.WriteString("  Enter 编辑选中的项目\n")
+	s.WriteString("  N 添加新的项目经历\n")
+	s.WriteString("  D 删除选中的项目\n")
+	s.WriteString("  Tab 继续下一步\n")
+	s.WriteString("  Esc 返回上一步\n")
 
 	return s.String()
 }
