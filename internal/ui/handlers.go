@@ -77,6 +77,12 @@ func (m *Model) handleEnter() (tea.Model, tea.Cmd) {
 		// Validate and save current step data
 		if m.validateCurrentStep() {
 			m.saveCurrentStep()
+			// When editing multi-item sections (Experience/Projects), return to management list
+			// immediately after saving instead of advancing to the next step, so the new/updated
+			// item is visible right away.
+			if m.currentStep == StepExperience || m.currentStep == StepProjects {
+				return *m, nil
+			}
 			m.nextStep()
 		}
 	}
