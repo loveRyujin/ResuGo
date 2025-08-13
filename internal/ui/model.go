@@ -287,6 +287,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 
+		case "d", "D":
+			// Handle deleting selected experience/project in management mode
+			if m.managingExperiences {
+				m.deleteSelectedExperience()
+				return m, nil
+			}
+			if m.managingProjects {
+				m.deleteSelectedProject()
+				return m, nil
+			}
+
 		default:
 			if m.editingList {
 				m.handleTextInput(msg)

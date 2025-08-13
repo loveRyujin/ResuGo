@@ -302,6 +302,54 @@ func (m *Model) saveCustomSections() {
 	}
 }
 
+// deleteSelectedExperience deletes the currently selected experience in management mode
+func (m *Model) deleteSelectedExperience() {
+	if !m.managingExperiences {
+		return
+	}
+	total := len(m.resume.Experience)
+	if total == 0 || m.selectedExperience < 0 || m.selectedExperience >= total {
+		return
+	}
+
+	idx := m.selectedExperience
+	// Delete the selected item
+	m.resume.Experience = append(m.resume.Experience[:idx], m.resume.Experience[idx+1:]...)
+
+	// Adjust selection
+	if len(m.resume.Experience) == 0 {
+		m.selectedExperience = 0
+	} else if idx >= len(m.resume.Experience) {
+		m.selectedExperience = len(m.resume.Experience) - 1
+	} else {
+		m.selectedExperience = idx
+	}
+}
+
+// deleteSelectedProject deletes the currently selected project in management mode
+func (m *Model) deleteSelectedProject() {
+	if !m.managingProjects {
+		return
+	}
+	total := len(m.resume.Projects)
+	if total == 0 || m.selectedProject < 0 || m.selectedProject >= total {
+		return
+	}
+
+	idx := m.selectedProject
+	// Delete the selected item
+	m.resume.Projects = append(m.resume.Projects[:idx], m.resume.Projects[idx+1:]...)
+
+	// Adjust selection
+	if len(m.resume.Projects) == 0 {
+		m.selectedProject = 0
+	} else if idx >= len(m.resume.Projects) {
+		m.selectedProject = len(m.resume.Projects) - 1
+	} else {
+		m.selectedProject = idx
+	}
+}
+
 // saveResume saves the complete resume to files
 func (m *Model) saveResume() error {
 	gen := generator.NewGenerator(&m.resume)
