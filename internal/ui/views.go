@@ -233,7 +233,12 @@ func (m Model) renderFormView() string {
 
 			if i == m.currentField {
 				if field.IsList {
-					s.WriteString(fmt.Sprintf("  [%s] (按Enter编辑)\n", field.Value))
+					// Skills step uses 'E' to enter list editing to keep Enter as next-step
+					if m.currentStep == StepSkills {
+						s.WriteString(fmt.Sprintf("  [%s] (按E编辑)\n", field.Value))
+					} else {
+						s.WriteString(fmt.Sprintf("  [%s] (按Enter编辑)\n", field.Value))
+					}
 				} else if field.Multiline {
 					// Render textarea for multiline fields
 					s.WriteString(fmt.Sprintf("  %s\n", m.textArea.View()))
@@ -255,7 +260,11 @@ func (m Model) renderFormView() string {
 			s.WriteString(fmt.Sprintf("❌ %s\n\n", m.error))
 		}
 
-		s.WriteString("Enter 下一步，↑/↓ 或 Tab(向下)/Shift+Tab(向上) 切换字段，j/k 仅用于输入，Esc 返回上一步\n")
+		if m.currentStep == StepSkills {
+			s.WriteString("Enter 下一步，E 编辑当前列表，↑/↓ 或 Tab/Shift+Tab 切换字段，Del 删除项（在列表编辑模式），Esc 返回上一步\n")
+		} else {
+			s.WriteString("Enter 下一步，↑/↓ 或 Tab(向下)/Shift+Tab(向上) 切换字段，j/k 仅用于输入，Esc 返回上一步\n")
+		}
 	}
 
 	return s.String()

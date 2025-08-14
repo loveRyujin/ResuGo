@@ -219,10 +219,10 @@ func (m *Model) setupSkillsStep() {
 	}
 
 	m.fields = []FormField{
-		{Label: "编程语言", Required: false, Placeholder: "Enter编辑列表", IsList: true, Value: strings.Join(languages, ", ")},
-		{Label: "框架/库", Required: false, Placeholder: "Enter编辑列表", IsList: true, Value: strings.Join(frameworks, ", ")},
-		{Label: "数据库", Required: false, Placeholder: "Enter编辑列表", IsList: true, Value: strings.Join(databases, ", ")},
-		{Label: "其他工具", Required: false, Placeholder: "Enter编辑列表", IsList: true, Value: strings.Join(other, ", ")},
+		{Label: "编程语言", Required: false, Placeholder: "按E编辑列表", IsList: true, Value: strings.Join(languages, ", ")},
+		{Label: "框架/库", Required: false, Placeholder: "按E编辑列表", IsList: true, Value: strings.Join(frameworks, ", ")},
+		{Label: "数据库", Required: false, Placeholder: "按E编辑列表", IsList: true, Value: strings.Join(databases, ", ")},
+		{Label: "其他工具", Required: false, Placeholder: "按E编辑列表", IsList: true, Value: strings.Join(other, ", ")},
 	}
 }
 

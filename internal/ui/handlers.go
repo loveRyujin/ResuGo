@@ -67,8 +67,12 @@ func (m *Model) handleEnter() (tea.Model, tea.Cmd) {
 		}
 
 		// Check if current field is a list field
-		if m.enterListEditingMode() {
-			return *m, nil
+		// For Skills step we keep Enter consistent with other steps (go next),
+		// so we do NOT auto-enter list editing here. List editing is opened via 'E'.
+		if m.currentStep != StepSkills {
+			if m.enterListEditingMode() {
+				return *m, nil
+			}
 		}
 
 		// Sync all input component values to fields before validation
@@ -136,7 +140,10 @@ func (m *Model) handleListNavigation(direction string) {
 			m.listIndex--
 		}
 	case "down":
-		if m.listIndex < len(m.listItems) {
+		if len(m.listItems) == 0 {
+			return
+		}
+		if m.listIndex < len(m.listItems)-1 {
 			m.listIndex++
 		}
 	}

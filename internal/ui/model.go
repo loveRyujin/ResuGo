@@ -221,10 +221,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				return m, nil
 			}
-			// Arrow keys always handle navigation to switch fields
-			if m.currentStep != StepWelcome && !m.editingList {
-				m.handleListNavigation("up")
-				m.handleFormNavigation("up")
+			// Arrow keys: when editing a list, move within list; otherwise move between fields
+			if m.currentStep != StepWelcome {
+				if m.editingList {
+					m.handleListNavigation("up")
+				} else {
+					m.handleFormNavigation("up")
+				}
 			}
 
 		case "down":
@@ -241,10 +244,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				return m, nil
 			}
-			// Arrow keys always handle navigation to switch fields
-			if m.currentStep != StepWelcome && !m.editingList {
-				m.handleListNavigation("down")
-				m.handleFormNavigation("down")
+			// Arrow keys: when editing a list, move within list; otherwise move between fields
+			if m.currentStep != StepWelcome {
+				if m.editingList {
+					m.handleListNavigation("down")
+				} else {
+					m.handleFormNavigation("down")
+				}
 			}
 
 		case "tab":
@@ -274,7 +280,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.handleListManagement("delete")
 
 		case "ctrl+n":
-			m.handleListManagement("add")
+			// In list editing mode, Ctrl+N adds a new list item
+			if m.editingList {
+				m.handleListManagement("add")
+				return m, nil
+			}
 
 		case "n", "N":
 			// Handle adding new experience/project in management mode
@@ -285,6 +295,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.managingProjects {
 				m.enterProjectEditMode(-1) // Add new project
 				return m, nil
+			}
+
+		case "e", "E":
+			// Explicitly enter list editing mode on Skills step
+			if m.currentStep == StepSkills {
+				if m.enterListEditingMode() {
+					return m, nil
+				}
 			}
 
 		case "d", "D":
