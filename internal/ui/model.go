@@ -298,8 +298,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "e", "E":
-			// Explicitly enter list editing mode on Skills step
-			if m.currentStep == StepSkills {
+			// Explicitly enter list editing mode on Skills/CustomSections step
+			if m.currentStep == StepSkills || m.currentStep == StepCustomSections {
 				if m.enterListEditingMode() {
 					return m, nil
 				}

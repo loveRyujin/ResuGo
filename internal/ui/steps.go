@@ -230,7 +230,7 @@ func (m *Model) setupSkillsStep() {
 func (m *Model) setupCustomSectionsStep() {
 	m.fields = []FormField{
 		{Label: "自定义章节标题", Required: false, Placeholder: "如: 获得证书、获奖经历、志愿活动 (可留空跳过)"},
-		{Label: "章节内容", Required: false, Placeholder: "按Enter编辑列表", IsList: true},
+		{Label: "章节内容", Required: false, Placeholder: "按E编辑列表", IsList: true},
 	}
 }
 

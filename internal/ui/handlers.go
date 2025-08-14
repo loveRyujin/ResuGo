@@ -67,9 +67,9 @@ func (m *Model) handleEnter() (tea.Model, tea.Cmd) {
 		}
 
 		// Check if current field is a list field
-		// For Skills step we keep Enter consistent with other steps (go next),
+		// For Skills and CustomSections steps we keep Enter consistent with other steps (go next),
 		// so we do NOT auto-enter list editing here. List editing is opened via 'E'.
-		if m.currentStep != StepSkills {
+		if m.currentStep != StepSkills && m.currentStep != StepCustomSections {
 			if m.enterListEditingMode() {
 				return *m, nil
 			}
