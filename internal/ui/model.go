@@ -179,6 +179,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		// Handle "any key to exit" when finished
+		if m.finished {
+			m.quitting = true
+			return m, tea.Quit
+		}
+
 		switch msg.String() {
 		case "ctrl+c":
 			m.quitting = true
